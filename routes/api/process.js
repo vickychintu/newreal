@@ -1,84 +1,102 @@
-/*
-  This file is called when the order is processed
-  It processes both app generated order and machine generated order 
-  Created By: Subramanian K - 24/1/2022
-*/
-
-//Importing all the required dependences
+const counter = require("../../model/counter");
 const express = require("express");
+const { verifyToken } = require("../../middleware/auth");
+const attendance = require("../../model/attendence");
+const accounts = require("../../model/accounts");
 const router = express.Router();
-//
-/*
-  object to store order details such as 
-    -userId
-    -machineId
-    -SKUId
-    -price
-    -quantity
-    -timestamp
-*/
-const orderdetails;
 
-//an encoding function that generates orderId with userId, machineId,timestamp
-var generateOrderId=(orderdetails)=>{
+router.post("/", verifyToken, async (req, res) => {
+  try {
+    const userName = req.user.id;
+    const { type, timeStamp, date, simCount } = req.body;
+    const updateTime = new Date(timeStamp);
+    const simCounter = {
+      entryTimeDate: updateTime,
+      entryDateTimestamp: timeStamp,
+      increment: type,
+    };
+    let query = {
+      userName: userName,
+      simCount: simCount,
+      entryDate: date,
+    };
+    const query2 = { UserName: userName, forDay: date };
+    let query3 = { UserName: userName };
+    const validateSimCount = await accounts.findOne(query3);
+    const counterValidate = await counter.findOne(query);
+    if (counterValidate?.simCounter <= 0 && type === false) {
+      res.status(403).json({ msg: "messed data" });
+      return;
+    }
+    if (
+      counterValidate &&
+      counterValidate.decrements >= counterValidate.increments &&
+      type === false
+    ) {
+      res.status(404).json({ msg: "increments cannot exceed decrements" });
+      return;
+    } else if (counterValidate === null && type === false) {
+      res.status(403).json({ msg: "cannot decrement zero" });
+      return;
+    }
 
-  /*
-   How?
-   S1) Use one of the encoding Algorithims such as md5,sha-256,sha-1.
-   s2) Using one of the Algorithims on the userId machineId,timestamp and generate a encoded string
-   S3) Return the encoded string
+    if (simCount > validateSimCount.simCount) {
+      res.status(403).json({ msg: "sim number does not exist" });
+      return;
+    }
 
-   human readable + unique + sales should not be back calculatable 
+    const update2 = {
+      $setOnInsert: { startTiz: updateTime },
+      startStatus: true,
+    };
+    let update, update3, update4;
+    if (type === true) {
+      update = {
+        $push: { simCounter: simCounter },
+        $inc: { increments: 1, ridesCount: 1 },
+      };
+      update3 = { $inc: { totalTicketsSold: 1 } };
+    } else if (type === false) {
+      query.ridesCount = { $gt: 0 };
+      query3.simCount = { $gt: 0 };
+      update = {
+        $push: { simCounter: simCounter },
+        $inc: { decrements: 1, ridesCount: -1 },
+      };
+      update3 = { $inc: { totalTicketsSold: -1 } };
+    } else {
+      res.status(400).json({
+        msg: "invalid type",
+        code: 403,
+      });
+      return;
+    }
 
-   */
-}
-/*
-  fetch wallet balance for userId and return balance 
-  */
-var fetchWalletBalance=(userId)=>{
-
-  /*
-
-  */
-}
-
-var orderEligibility=(fetchwalletBal,price)=>{
-  /* 
-     S1) check order eligibility if the available tokens are enough for processing order.
-     S2) if not check free bucket is valid for the order using freeBucketValidator().
-     S3) if user has required tokens return true else return false.
-*/
-}
-
-/*check if free bucket is valid for this order*/
-var freeBucketValidator=(price)=>{
-  /*
-    S1) check if free bucket amounts to required price
-    S2) apply required coupons
-    S3) return true if freebucket can be claimed else return false
-  */
-}
-
-/*
-  function used Generate an order by adding it to the orders database
-  and update the status of the ortder as nessary
-*/
-var generateOrder=()=>{
-
-}
-
-/*This function changes the order status based on the order request */
-var changeOrderStatus=(request)=>{
-  /*
-      S1)Based on request update order request
-      S2)Update the orders database based on the status
-  */
-}
-
-//Create an Post API to process order
-router.post("/", async (req, res) => {
-  
+    const options = { upsert: true, new: true, runValidators: true };
+    const attend = await attendance.findOneAndUpdate(query2, update2, options);
+    if (!attend.finalStatus) {
+      const count = await counter.findOneAndUpdate(query, update, options);
+      console.log(count);
+      const userUpdate = await accounts.findOneAndUpdate(
+        query3,
+        update3,
+        options
+      );
+      res.status(200).json({
+        msg: "counter updated",
+        simNumber: count.simCount,
+        totalCount: count.increments - count.decrements,
+      });
+      return;
+    } else {
+      res.status(403).json({
+        msg: "cannot inc/dec ,data is finalized",
+      });
+      return;
+    }
+  } catch (e) {
+    console.log(e);
+    res.status(402).send("server error");
+  }
 });
-
-//Export the API route
 module.exports = router;
