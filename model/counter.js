@@ -5,7 +5,7 @@ const UserSchema = new mongoose.Schema({
     required: true,
   },
   simCount: {
-    type: Number,
+    type: String,
     required: true,
   },
   entryDate: {

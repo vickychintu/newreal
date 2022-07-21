@@ -19,8 +19,8 @@ const UserSchema = new mongoose.Schema({
     type: String,
   },
   simCount: {
-    type: Number,
-    required: true,
+    type: Array,
+    default: [],
   },
   totalTicketsSold: {
     type: Number,

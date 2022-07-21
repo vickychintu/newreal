@@ -7,7 +7,7 @@ router.post("/", async (req, res) => {
   console.log(req.body);
   try {
     const { userName, password, simCount } = req.body;
-    console.log(userName);
+    console.log(userName, password, simCount);
     const userAccount = new account({
       UserName: userName,
       password: md5(password),

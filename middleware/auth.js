@@ -10,15 +10,16 @@ This function used to token verification
 */
 
 const verifyToken = (req, res, next) => {
-  const authHeaderToken = req.headers.authorization;
+  const authHeaderToken = req.header("x-auth-token");
   if (authHeaderToken) {
-    const token = authHeaderToken.split(" ")[1];
-    jwt.verify(token, process.env.JWT_KEY, (err, user) => {
+    // const token = authHeaderToken.split(" ")[1];
+    jwt.verify(authHeaderToken, process.env.JWT_KEY, (err, user) => {
       if (err) {
         res.status(403).json({ message: "token expired" });
         return;
       }
       req.user = user;
+      req.token = authHeaderToken;
       next();
     });
   } else {
