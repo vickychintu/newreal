@@ -20,6 +20,14 @@ router.post("/", verifyToken, async (req, res) => {
     const tempDate = new Date(timeStamp);
     const jsDate = new Date(tempDate.setHours(0, 0, 0, 0) + 19800000);
     try {
+      const simCheck = await accounts.findOne({ UserName: userName });
+      if (simCheck) {
+        console.log(simCheck);
+        if (!simCheck.simCount.includes(simId)) {
+          console.log("simId does not exist in ");
+          return;
+        }
+      }
       const updateTime = new Date(timeStamp.getTime() + 19800000);
       const simCounter = {
         entryTimeDate: updateTime,
@@ -38,7 +46,7 @@ router.post("/", verifyToken, async (req, res) => {
       const validateSimCount = await accounts.findOne(query3);
       const counterValidate = await counter.findOne(query);
       if (!validateSimCount.simCount.includes(simCount)) {
-        responseValue.push({ id: pushId, msg: "not valid simId" });
+        console.log("sim is not valid");
         return;
       }
       const logCheck = await conformLog.updateOne(
@@ -48,7 +56,7 @@ router.post("/", verifyToken, async (req, res) => {
       );
       if (!logCheck.upsertedId) {
         responseValue.push(pushId);
-        //alreadyDone
+        console.log("already done");
         return;
       }
       const update2 = {
@@ -71,7 +79,7 @@ router.post("/", verifyToken, async (req, res) => {
         };
         update3 = { $inc: { totalTicketsSold: -1 } };
       } else {
-        // invalid type
+        console.log("not even reaching the finalized check");
         return;
       }
 
@@ -92,7 +100,7 @@ router.post("/", verifyToken, async (req, res) => {
         responseValue.push(pushId);
         return;
       } else {
-        //data already finalized
+        console.log("already finalized ");
         return;
       }
     } catch (e) {

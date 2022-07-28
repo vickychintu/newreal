@@ -45,7 +45,7 @@ router.get("/verify", verifyToken, (req, res) => {
         res.status(403).json({ err: "database error" });
       } else if (docs) {
         console.log(docs);
-        res.status(200).json({
+        res.status(401).json({
           username: docs.UserName,
           token: req.token,
           simCount: docs.simCount,

@@ -7,13 +7,13 @@ const router = express.Router();
 router.post("/", verifyToken, async (req, res) => {
   const UserName = req.user.id;
   const { date } = req.body;
-  console.log(UserName, date);
+  console.log(UserName, new Date(date + 19800000).toISOString());
   const graphData = await counter
     .aggregate([
       {
         $match: {
           userName: UserName,
-          entryDate: new Date(date),
+          entryDate: new Date(date + 19800000),
         },
       },
       {
@@ -49,7 +49,8 @@ router.post("/", verifyToken, async (req, res) => {
         tempObject.hourGraph = hourGraph;
         graphData[val._id.simCount] = tempObject;
       });
-      res.send(graphData);
+      console.log(graphData);
+      res.status(200).json({ data: graphData });
     })
     .catch((error) => {
       console.log(error);

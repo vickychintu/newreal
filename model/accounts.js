@@ -11,6 +11,10 @@ const UserSchema = new mongoose.Schema({
     ref: personalDetails,
     unique: true,
   },
+  validationID: {
+    type: String,
+    required: true,
+  },
   password: {
     type: String,
     required: true,

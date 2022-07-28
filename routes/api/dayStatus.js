@@ -6,7 +6,8 @@ const counter = require("../../model/counter");
 const router = express.Router();
 
 router.post("/", verifyToken, async (req, res) => {
-  const userName = req.user.id;
+  try{
+ const userName = req.user.id;
   const { date } = req.body;
   console.log(userName,date);
   const simCount = await accounts.findOne(
@@ -43,6 +44,11 @@ router.post("/", verifyToken, async (req, res) => {
         res.status(200).json(dataObj);
       }
     });
+  }
+  catch(e){
+    res.status(500).json({msg:"server error"})
+  }
+ 
 });
 
 module.exports = router;
