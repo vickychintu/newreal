@@ -18,7 +18,7 @@ app.use(
     origin: "*",
   })
 );
-const PORT = 8000;
+const PORT = process.env.PORT || 8000;
 app.get("/backend", (req, res) => {
   res.send("API Running");
 });
@@ -34,16 +34,22 @@ app.use("/backend/api/incrementCounter", require("./routes/api/process"));
 app.use("/backend/api/login", require("./routes/api/login"));
 app.use("/backend/api/register", require("./routes/api/register"));
 app.use("/backend/api/finalize", require("./routes/api/finalize"));
-
-const httpsServer = https.createServer(
-  {
-    key: fs.readFileSync("/etc/letsencrypt/live/projectteho.com/privkey.pem"),
-    cert: fs.readFileSync(
-      "/etc/letsencrypt/live/projectteho.com/fullchain.pem"
-    ),
-  },
-  app
+app.use(
+  "/backend/api/locationRegister",
+  require("./routes/api/location/createLocations")
 );
-
-const port = 8000;
-httpsServer.listen(port, console.log(`Listening on port ${port}...`));
+app.use(
+  "/backend/api/addEmployees",
+  require("./routes/api/location/addEmployes")
+);
+app.use(
+  "/backend/api/getLocations",
+  require("./routes/api/location/getLocations")
+);
+app.use(
+  "/backend/api/adminAnalytics",
+  require("./routes/api/location/andminAnalysis")
+);
+app.listen(PORT, () => {
+  console.info(`App listening at http://localhost:${PORT}`);
+});

@@ -15,6 +15,7 @@ const verifyToken = (req, res, next) => {
     // const token = authHeaderToken.split(" ")[1];
     jwt.verify(authHeaderToken, process.env.JWT_KEY, (err, user) => {
       if (err) {
+        console.log(err);
         res.status(403).json({ message: "token expired" });
         return;
       }

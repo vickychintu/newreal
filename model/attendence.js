@@ -12,7 +12,6 @@ const UserSchema = mongoose.Schema({
   forDay: {
     type: Date,
     required: true,
-    unique: true,
   },
   finalStatus: {
     type: Boolean,

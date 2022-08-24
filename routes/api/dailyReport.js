@@ -13,7 +13,7 @@ router.post("/", verifyToken, async (req, res) => {
       {
         $match: {
           userName: UserName,
-          entryDate: new Date(date + 19800000),
+          entryDate: new Date(date + 19800000*2),
         },
       },
       {
