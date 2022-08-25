@@ -100,4 +100,53 @@ router.post("/", async (req, res) => {
       }
     });
 });
+router.post("/monthWise", (req, res) => {
+  const { locationId, month } = req.body;
+  locationLogs
+    .findOne({ _id: mongoose.Types.ObjectId(locationId) })
+    .exec(async (err, docs) => {
+      // console.log(err);
+      if (err) {
+        console.log(err);
+        res.status(404).json({ msg: "internal error" });
+      } else if (docs) {
+        employees = docs.LocationUsers;
+        const graphData = await counter
+          .aggregate([
+            { $addFields: { month: { $month: "$entryDate" } } },
+            {
+              $match: {
+                userName: { $in: employees },
+                month: month,
+              },
+            },
+            {
+              $group: {
+                _id: {
+                  entryDate: "$entryDate",
+                },
+                countValue: {
+                  $sum: "$ridesCount",
+                },
+              },
+            },
+          ])
+          .then((result) => {
+            let monthArray = new Array(31).fill(0);
+            console.log(result);
+            result.map((docs) => {
+              const date = new Date(docs._id.entryDate);
+              monthArray[date.getDate() - 1] = docs.countValue;
+              console.log(date.getDate(), docs.countValue);
+            });
+            res.status(200).json(monthArray);
+            console.log(monthArray);
+          })
+          .catch((error) => {
+            res.status(400).json({ msg: "internal server error" });
+            console.log(error);
+          });
+      }
+    });
+});
 module.exports = router;

@@ -22,6 +22,10 @@ const PORT = process.env.PORT || 8000;
 app.get("/backend", (req, res) => {
   res.send("API Running");
 });
+app.post("/ifbTesting", (req, res) => {
+  console.log(req.body);
+  res.status(200).json({ msg: "received data" });
+});
 let cornString = "32 16 * * * *";
 cron.schedule(cornString, function () {
   console.log("this cron job is running every five minutes");
