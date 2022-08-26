@@ -101,7 +101,7 @@ router.post("/", async (req, res) => {
     });
 });
 router.post("/monthWise", (req, res) => {
-  const { locationId, month } = req.body;
+  const { locationId, month, year } = req.body;
   locationLogs
     .findOne({ _id: mongoose.Types.ObjectId(locationId) })
     .exec(async (err, docs) => {
@@ -113,11 +113,17 @@ router.post("/monthWise", (req, res) => {
         employees = docs.LocationUsers;
         const graphData = await counter
           .aggregate([
-            { $addFields: { month: { $month: "$entryDate" } } },
+            {
+              $addFields: {
+                month: { $month: "$entryDate" },
+                year: { $year: "$entryDate" },
+              },
+            },
             {
               $match: {
                 userName: { $in: employees },
                 month: month,
+                year: year,
               },
             },
             {
