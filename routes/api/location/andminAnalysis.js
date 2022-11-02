@@ -155,4 +155,49 @@ router.post("/monthWise", (req, res) => {
       }
     });
 });
+
+router.post("/average", async (req, res) => {
+  try {
+    const { locationId, month, year, isAllTime } = req.body;
+    var lastDayOfMonth = new Date(year, month, 0).getDate();
+    let result = [];
+    result = await counter.aggregate([
+      {
+        $match: !isAllTime
+          ? {
+              entryDate: {
+                $gte: new Date(
+                  `${year}-${
+                    month > 9 ? month : "0" + String(month)
+                  }-01T05:30:00Z`
+                ),
+                $lte: new Date(
+                  `${year}-${
+                    month > 9 ? month : "0" + String(month)
+                  }-${lastDayOfMonth}T05:30:00Z`
+                ),
+              },
+            }
+          : {},
+      },
+      {
+        $group: {
+          _id: { $dayOfWeek: { date: "$entryDate" } },
+          totalRides: { $sum: "$ridesCount" },
+        },
+      },
+    ]);
+
+    let data = {};
+    data.sumRides = 0;
+    result.map((item) => {
+      data[item._id] = item.totalRides;
+      data.sumRides += item.totalRides;
+    });
+    return res.status(200).json(data);
+  } catch (err) {
+    console.log(err);
+    return res.status(503).json("Internal Server Error!");
+  }
+});
 module.exports = router;
