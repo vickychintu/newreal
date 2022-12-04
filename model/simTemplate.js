@@ -25,10 +25,7 @@ const simulationData = new mongoose.Schema({
     type: Array,
     required: true,
   },
-  orderHourArray: {
-    type: Array,
-    required: true,
-  },
+
   jsonLocation: {
     type: Array,
     required: true,

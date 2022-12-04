@@ -48,57 +48,60 @@ app.post("/generateData", (req, res) => {
 
     const hourArray = randomizer(hourData, weekArray, startDate, endDate);
     var rawData = fs.readFileSync(files.file.filepath);
-
-    fs.writeFile(
-      `../uploads/${files.file.newFilename}.json`,
-      rawData,
-      (err, data) => {
-        if (err) {
-          res.status(407);
-          return;
-        }
-        const testData = require(`../uploads/${files.file.newFilename}.json`);
-        const spanData = randomOrderPicker(hourArray, testData.length);
-        let completeDispersionData = [];
-        hourArray.map((x, i) => {
-          completeDispersionData.push(mapRandomData(x));
-        });
-        if (Array.isArray(testData)) {
-          simTemplate
-            .insertMany({
-              name: template,
-              templateArray: hourData,
-              startDate: startDate,
-              endDate: endDate,
-              weekVolume: weekArray,
-              hourArray: hourArray,
-              jsonLocation: `../uploads/${files.file.newFilename}.json`,
-              jsonLength: testData.length,
-              spanData: spanData,
-              apiEndPoint: apiEndPoint,
-              completeDispersionData: completeDispersionData,
-              // orderTime,
-              // waitTime,
-              orderHourArray: v2DisperseData.orderDayArray,
-            })
-            .then((response) => {
-              res.status(200).json({ msg: "sucessfull" });
-              return;
-            })
-            .catch((err) => {
-              if (err.code == 11000) {
-                res.status(204).json({ msg: "template name must be unique" });
+    try {
+      fs.writeFile(
+        `../uploads/${files.file.newFilename}.json`,
+        rawData,
+        (err, data) => {
+          if (err) {
+            res.status(407);
+            return;
+          }
+          const testData = require(`../uploads/${files.file.newFilename}.json`);
+          const spanData = randomOrderPicker(hourArray, testData.length);
+          let completeDispersionData = [];
+          hourArray.map((x, i) => {
+            completeDispersionData.push(mapRandomData(x));
+          });
+          if (Array.isArray(testData)) {
+            simTemplate
+              .insertMany({
+                name: template,
+                templateArray: hourData,
+                startDate: startDate,
+                endDate: endDate,
+                weekVolume: weekArray,
+                hourArray: hourArray,
+                jsonLocation: `../uploads/${files.file.newFilename}.json`,
+                jsonLength: testData.length,
+                spanData: spanData,
+                apiEndPoint: apiEndPoint,
+                completeDispersionData: completeDispersionData,
+              })
+              .then((response) => {
+                res.status(200).json({ msg: "sucessfull" });
                 return;
-              }
-              res.status(407).json({ msg: "failure" });
-              return;
-            });
-        } else {
-          res.status(205).json({ msg: "file must contain an array of jsons" });
-          return;
+              })
+              .catch((err) => {
+                if (err.code == 11000) {
+                  res.status(204).json({ msg: "template name must be unique" });
+                  return;
+                }
+                res.status(407).json({ msg: "failure" });
+                return;
+              });
+          } else {
+            res
+              .status(205)
+              .json({ msg: "file must contain an array of jsons" });
+            return;
+          }
         }
-      }
-    );
+      );
+    } catch (e) {
+      console.log(e);
+      res.status(407).json({ msg: "failure" });
+    }
   });
 });
 const splitOrders = () => {};
